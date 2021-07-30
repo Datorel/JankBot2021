@@ -15,6 +15,27 @@ void on_center_button() {
 	}
 }
 
+//initializes motors and Controller
+void config() {
+	pros::Controller master(pros::E_CONTROLLER_MASTER);
+
+	//init drive motors
+	pros::Motor lFDrive(1, pros::E_MOTOR_GEARSET_18, false);
+	pros::Motor rFDrive(2, pros::E_MOTOR_GEARSET_18, true);
+	pros::Motor lRDrive(3, pros::E_MOTOR_GEARSET_18, false);
+	pros::Motor rRDrive(4, pros::E_MOTOR_GEARSET_18, true);
+	//configure motors
+	lFDrive.set_current_limit(1500);
+	rFDrive.set_current_limit(1500);
+	lRDrive.set_current_limit(1500);
+	rRDrive.set_current_limit(1500);
+
+	//init auxillary motors
+	pros::Motor lift(5, pros::E_MOTOR_GEARSET_36, false);
+	pros::Motor rIn(6);
+	pros::Motor lIn(7);
+}
+
 /**
  * Runs initialization code. This occurs as soon as the program is started.
  *
@@ -78,6 +99,24 @@ void opcontrol() {
 	pros::Motor right_mtr(2);
 
 	while (true) {
+		int driveMode = 0;
+
+		switch(driveMode){
+			case 0:
+				pros::lcd::set_text(1, "Tank Drive");
+			break;
+			case 1:
+				pros::lcd::set_text(1, "Arcade Drive");
+			break;
+			case 2:
+				pros::lcd::set_text(1, "Leftie Arcade");
+			break;
+			case 3:
+				pros::lcd::set_text(1, "Single Stick Arcade");
+				pros::lcd::set_text(2, "Press again to toggle side.");
+			break;
+		}
+
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
 		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
 		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);

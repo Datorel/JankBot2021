@@ -143,47 +143,67 @@ void opcontrol() {
 				rFDrive.move(master.get_analog(ANALOG_RIGHT_Y));
 				rRDrive.move(master.get_analog(ANALOG_RIGHT_Y));
 
-				if (master.get_digital(DIGITAL_R1)) {
-					rIn.move_velocity(100);
-					lIn.move_velocity(100);
-				}
-				else if (master.get_digital(DIGITAL_R2)) {
-					rIn.move_velocity(-50);
-					lIn.move_velocity(-50);
-				}
-				else {
-					rIn.move_velocity(0);
-					lIn.move_velocity(0);
-				}
-
-				if (master.get_digital(DIGITAL_L1)) {
-					lift.move_velocity(100);
-				}
-				else if (master.get_digital(DIGITAL_L2)) {
-					lift.move_velocity(-50);
-				}
-				else {
-					lift.move_velocity(0);
-				}
-
-
 			break;
 			case 1:
 				pros::lcd::set_text(1, "Arcade Drive");
+
+				lFDrive.move(master.get_analog(ANALOG_RIGHT_Y) - master.get_analog(ANALOG_LEFT_X));
+				lRDrive.move(master.get_analog(ANALOG_RIGHT_Y) - master.get_analog(ANALOG_LEFT_X));
+				rFDrive.move(master.get_analog(ANALOG_RIGHT_Y) + master.get_analog(ANALOG_LEFT_X));
+				rRDrive.move(master.get_analog(ANALOG_RIGHT_Y) + master.get_analog(ANALOG_LEFT_X));
+
 			break;
 			case 2:
 				pros::lcd::set_text(1, "Leftie Arcade");
+
+				lFDrive.move(master.get_analog(ANALOG_LEFT_Y) - master.get_analog(ANALOG_RIGHT_X));
+				lRDrive.move(master.get_analog(ANALOG_LEFT_Y) - master.get_analog(ANALOG_RIGHT_X));
+				rFDrive.move(master.get_analog(ANALOG_LEFT_Y) + master.get_analog(ANALOG_RIGHT_X));
+				rRDrive.move(master.get_analog(ANALOG_LEFT_Y) + master.get_analog(ANALOG_RIGHT_X));
 			break;
 			case 3:
 				pros::lcd::set_text(1, "Single Stick Arcade");
 				pros::lcd::set_text(2, "Press again to toggle side.");
+
+				lFDrive.move(master.get_analog(ANALOG_RIGHT_Y) - master.get_analog(ANALOG_RIGHT_X));
+				lRDrive.move(master.get_analog(ANALOG_RIGHT_Y) - master.get_analog(ANALOG_RIGHT_X));
+				rFDrive.move(master.get_analog(ANALOG_RIGHT_Y) + master.get_analog(ANALOG_RIGHT_X));
+				rRDrive.move(master.get_analog(ANALOG_RIGHT_Y) + master.get_analog(ANALOG_RIGHT_X));
 			break;
 			case 4:
 				pros::lcd::set_text(1, "Single Stick Arcade");
 				pros::lcd::set_text(2, "Press again to toggle side.");
+
+				lFDrive.move(master.get_analog(ANALOG_LEFT_Y) - master.get_analog(ANALOG_LEFT_X));
+				lRDrive.move(master.get_analog(ANALOG_LEFT_Y) - master.get_analog(ANALOG_LEFT_X));
+				rFDrive.move(master.get_analog(ANALOG_LEFT_Y) + master.get_analog(ANALOG_LEFT_X));
+				rRDrive.move(master.get_analog(ANALOG_LEFT_Y) + master.get_analog(ANALOG_LEFT_X));
 			break;
 			default:
 			break;
+		}
+
+		if (master.get_digital(DIGITAL_R1)) {
+			rIn.move_velocity(100);
+			lIn.move_velocity(100);
+		}
+		else if (master.get_digital(DIGITAL_R2)) {
+			rIn.move_velocity(-50);
+			lIn.move_velocity(-50);
+		}
+		else {
+			rIn.move_velocity(0);
+			lIn.move_velocity(0);
+		}
+
+		if (master.get_digital(DIGITAL_L1)) {
+			lift.move_velocity(100);
+		}
+		else if (master.get_digital(DIGITAL_L2)) {
+			lift.move_velocity(-50);
+		}
+		else {
+			lift.move_velocity(0);
 		}
 
 		changeMode(driveMode);

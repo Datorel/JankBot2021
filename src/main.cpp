@@ -14,27 +14,30 @@ void on_center_button() {
 		pros::lcd::clear_line(2);
 	}
 }
-
+//checks for button press to change mode
+int changeMode(int mode);
 //initializes motors and Controller
-void config() {
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
+pros::Controller master(pros::E_CONTROLLER_MASTER);
 
-	//init drive motors
-	pros::Motor lFDrive(1, pros::E_MOTOR_GEARSET_18, false);
-	pros::Motor rFDrive(2, pros::E_MOTOR_GEARSET_18, true);
-	pros::Motor lRDrive(3, pros::E_MOTOR_GEARSET_18, false);
-	pros::Motor rRDrive(4, pros::E_MOTOR_GEARSET_18, true);
+//init drive motors
+pros::Motor lFDrive(9, pros::E_MOTOR_GEARSET_18, false);
+pros::Motor rFDrive(2, pros::E_MOTOR_GEARSET_18, true);
+pros::Motor lRDrive(10, pros::E_MOTOR_GEARSET_18, false);
+pros::Motor rRDrive(1, pros::E_MOTOR_GEARSET_18, true);
+
+//init auxillary motors
+pros::Motor lift(6, pros::E_MOTOR_GEARSET_36, false);
+pros::Motor rIn(8);
+pros::Motor lIn(7);
+
+void config() {
 	//configure motors
 	lFDrive.set_current_limit(1500);
 	rFDrive.set_current_limit(1500);
 	lRDrive.set_current_limit(1500);
 	rRDrive.set_current_limit(1500);
-
-	//init auxillary motors
-	pros::Motor lift(5, pros::E_MOTOR_GEARSET_36, false);
-	pros::Motor rIn(6);
-	pros::Motor lIn(7);
 }
+
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -43,9 +46,10 @@ void config() {
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
+
 	pros::lcd::initialize();
 	pros::lcd::set_text(1, "Hello PROS User!");
-
+	config();
 	pros::lcd::register_btn1_cb(on_center_button);
 }
 
@@ -94,9 +98,6 @@ void autonomous() {}
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor left_mtr(1);
-	pros::Motor right_mtr(2);
 
 	while (true) {
 		int driveMode = 0;
@@ -104,6 +105,36 @@ void opcontrol() {
 		switch(driveMode){
 			case 0:
 				pros::lcd::set_text(1, "Tank Drive");
+
+				lFDrive.move(master.get_analog(ANALOG_LEFT_Y));
+				lRDrive.move(master.get_analog(ANALOG_LEFT_Y));
+				rFDrive.move(master.get_analog(ANALOG_RIGHT_Y));
+				rRDrive.move(master.get_analog(ANALOG_RIGHT_Y));
+
+				if (master.get_digital(DIGITAL_R1)) {
+					rIn.move_velocity(100);
+					lIn.move_velocity(100);
+				}
+				else if (master.get_digital(DIGITAL_R2)) {
+					rIn.move_velocity(-50);
+					lIn.move_velocity(-50);
+				}
+				else {
+					rIn.move_velocity(0);
+					lIn.move_velocity(0);
+				}
+
+				if (master.get_digital(DIGITAL_L1)) {
+					lift.move_velocity(100);
+				}
+				else if (master.get_digital(DIGITAL_L2)) {
+					lift.move_velocity(-50);
+				}
+				else {
+					lift.move_velocity(0);
+				}
+
+
 			break;
 			case 1:
 				pros::lcd::set_text(1, "Arcade Drive");
@@ -115,16 +146,34 @@ void opcontrol() {
 				pros::lcd::set_text(1, "Single Stick Arcade");
 				pros::lcd::set_text(2, "Press again to toggle side.");
 			break;
+			case 4:
+				pros::lcd::set_text(1, "Single Stick Arcade");
+				pros::lcd::set_text(2, "Press again to toggle side.");
+			break;
+			default:
+			break;
 		}
 
-		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
-		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
-		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
-		int left = master.get_analog(ANALOG_LEFT_Y);
-		int right = master.get_analog(ANALOG_RIGHT_Y);
-
-		left_mtr = left;
-		right_mtr = right;
 		pros::delay(20);
+	}
+}
+
+int changeMode(int mode) {
+	if(master.get_digital_new_press(DIGITAL_UP)) {
+		mode = 0;
+	}
+	if(master.get_digital_new_press(DIGITAL_LEFT)) {
+		mode = 2;
+	}
+	if(master.get_digital_new_press(DIGITAL_RIGHT)) {
+		mode = 1;
+	}
+	if(master.get_digital_new_press(DIGITAL_DOWN)) {
+		if(mode == 3) {
+			mode = 4;
+		}
+		else if (mode == 4) {
+			mode = 3;
+		}
 	}
 }

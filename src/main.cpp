@@ -33,17 +33,20 @@ pros::Motor lRDrive(10, pros::E_MOTOR_GEARSET_18, true);
 pros::Motor rRDrive(1, pros::E_MOTOR_GEARSET_18, false);
 
 //init auxillary motors
-pros::Motor lift(6, pros::E_MOTOR_GEARSET_36, false);
-pros::Motor claw(7, pros::E_MOTOR_GEARSET_36, false);
+pros::Motor lift(6, pros::E_MOTOR_GEARSET_36, true);
+pros::Motor claw(7, pros::E_MOTOR_GEARSET_36, true);
 
 void config() {
 	//configure motors
-	lFDrive.set_current_limit(1500);
-	rFDrive.set_current_limit(1500);
-	lRDrive.set_current_limit(1500);
-	rRDrive.set_current_limit(1500);
+	lFDrive.set_current_limit(1000);
+	rFDrive.set_current_limit(1000);
+	lRDrive.set_current_limit(1000);
+	rRDrive.set_current_limit(1000);
 
+	lift.set_current_limit(1500);
 	claw.set_current_limit(1000);
+
+	lift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 }
 
 
@@ -131,9 +134,10 @@ void autonomous() {}
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+	int clawWasOpen;
+	int driveMode = 0;
 
 	while (true) {
-		int driveMode = 0;
 
 		switch(driveMode){
 			case 0:
@@ -148,37 +152,37 @@ void opcontrol() {
 			case 1:
 				pros::lcd::set_text(1, "Arcade Drive");
 
-				lFDrive.move(master.get_analog(ANALOG_RIGHT_Y) - master.get_analog(ANALOG_LEFT_X));
-				lRDrive.move(master.get_analog(ANALOG_RIGHT_Y) - master.get_analog(ANALOG_LEFT_X));
-				rFDrive.move(master.get_analog(ANALOG_RIGHT_Y) + master.get_analog(ANALOG_LEFT_X));
-				rRDrive.move(master.get_analog(ANALOG_RIGHT_Y) + master.get_analog(ANALOG_LEFT_X));
+				lFDrive.move(master.get_analog(ANALOG_RIGHT_Y) + master.get_analog(ANALOG_LEFT_X));
+				lRDrive.move(master.get_analog(ANALOG_RIGHT_Y) + master.get_analog(ANALOG_LEFT_X));
+				rFDrive.move(master.get_analog(ANALOG_RIGHT_Y) - master.get_analog(ANALOG_LEFT_X));
+				rRDrive.move(master.get_analog(ANALOG_RIGHT_Y) - master.get_analog(ANALOG_LEFT_X));
 
 			break;
 			case 2:
 				pros::lcd::set_text(1, "Leftie Arcade");
 
-				lFDrive.move(master.get_analog(ANALOG_LEFT_Y) - master.get_analog(ANALOG_RIGHT_X));
-				lRDrive.move(master.get_analog(ANALOG_LEFT_Y) - master.get_analog(ANALOG_RIGHT_X));
-				rFDrive.move(master.get_analog(ANALOG_LEFT_Y) + master.get_analog(ANALOG_RIGHT_X));
-				rRDrive.move(master.get_analog(ANALOG_LEFT_Y) + master.get_analog(ANALOG_RIGHT_X));
+				lFDrive.move(master.get_analog(ANALOG_LEFT_Y) + master.get_analog(ANALOG_RIGHT_X));
+				lRDrive.move(master.get_analog(ANALOG_LEFT_Y) + master.get_analog(ANALOG_RIGHT_X));
+				rFDrive.move(master.get_analog(ANALOG_LEFT_Y) - master.get_analog(ANALOG_RIGHT_X));
+				rRDrive.move(master.get_analog(ANALOG_LEFT_Y) - master.get_analog(ANALOG_RIGHT_X));
 			break;
 			case 3:
 				pros::lcd::set_text(1, "Single Stick Arcade");
 				pros::lcd::set_text(2, "Press again to toggle side.");
 
-				lFDrive.move(master.get_analog(ANALOG_RIGHT_Y) - master.get_analog(ANALOG_RIGHT_X));
-				lRDrive.move(master.get_analog(ANALOG_RIGHT_Y) - master.get_analog(ANALOG_RIGHT_X));
-				rFDrive.move(master.get_analog(ANALOG_RIGHT_Y) + master.get_analog(ANALOG_RIGHT_X));
-				rRDrive.move(master.get_analog(ANALOG_RIGHT_Y) + master.get_analog(ANALOG_RIGHT_X));
+				lFDrive.move(master.get_analog(ANALOG_RIGHT_Y) + master.get_analog(ANALOG_RIGHT_X));
+				lRDrive.move(master.get_analog(ANALOG_RIGHT_Y) + master.get_analog(ANALOG_RIGHT_X));
+				rFDrive.move(master.get_analog(ANALOG_RIGHT_Y) - master.get_analog(ANALOG_RIGHT_X));
+				rRDrive.move(master.get_analog(ANALOG_RIGHT_Y) - master.get_analog(ANALOG_RIGHT_X));
 			break;
 			case 4:
 				pros::lcd::set_text(1, "Single Stick Arcade");
 				pros::lcd::set_text(2, "Press again to toggle side.");
 
-				lFDrive.move(master.get_analog(ANALOG_LEFT_Y) - master.get_analog(ANALOG_LEFT_X));
-				lRDrive.move(master.get_analog(ANALOG_LEFT_Y) - master.get_analog(ANALOG_LEFT_X));
-				rFDrive.move(master.get_analog(ANALOG_LEFT_Y) + master.get_analog(ANALOG_LEFT_X));
-				rRDrive.move(master.get_analog(ANALOG_LEFT_Y) + master.get_analog(ANALOG_LEFT_X));
+				lFDrive.move(master.get_analog(ANALOG_LEFT_Y) + master.get_analog(ANALOG_LEFT_X));
+				lRDrive.move(master.get_analog(ANALOG_LEFT_Y) + master.get_analog(ANALOG_LEFT_X));
+				rFDrive.move(master.get_analog(ANALOG_LEFT_Y) - master.get_analog(ANALOG_LEFT_X));
+				rRDrive.move(master.get_analog(ANALOG_LEFT_Y) - master.get_analog(ANALOG_LEFT_X));
 			break;
 			default:
 			break;
@@ -186,9 +190,14 @@ void opcontrol() {
 
 		if (master.get_digital(DIGITAL_R1)) {
 			claw.move_velocity(100);
+			clawWasOpen = true;
 		}
 		else if (master.get_digital(DIGITAL_R2)) {
-			claw.move_velocity(-50);
+			clawWasOpen = false;
+			claw.move_velocity(-100);
+		}
+		else if (!clawWasOpen) {
+			claw.move_voltage(-12000);
 		}
 		else {
 			claw.move_velocity(0);
@@ -204,7 +213,10 @@ void opcontrol() {
 			lift.move_velocity(0);
 		}
 
-		changeMode(driveMode);
+		driveMode = changeMode(driveMode);
+		while (master.get_digital(DIGITAL_UP) || master.get_digital(DIGITAL_DOWN) || master.get_digital(DIGITAL_RIGHT) || master.get_digital(DIGITAL_LEFT)) {
+			pros::delay(20);
+		}
 		pros::delay(20);
 	}
 }

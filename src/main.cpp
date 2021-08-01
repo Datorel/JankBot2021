@@ -27,15 +27,14 @@ int changeMode(int mode);
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
 //init drive motors
-pros::Motor lFDrive(9, pros::E_MOTOR_GEARSET_18, false);
-pros::Motor rFDrive(2, pros::E_MOTOR_GEARSET_18, true);
-pros::Motor lRDrive(10, pros::E_MOTOR_GEARSET_18, false);
-pros::Motor rRDrive(1, pros::E_MOTOR_GEARSET_18, true);
+pros::Motor lFDrive(9, pros::E_MOTOR_GEARSET_18, true);
+pros::Motor rFDrive(2, pros::E_MOTOR_GEARSET_18, false);
+pros::Motor lRDrive(10, pros::E_MOTOR_GEARSET_18, true);
+pros::Motor rRDrive(1, pros::E_MOTOR_GEARSET_18, false);
 
 //init auxillary motors
 pros::Motor lift(6, pros::E_MOTOR_GEARSET_36, false);
-pros::Motor rIn(8);
-pros::Motor lIn(7);
+pros::Motor claw(7, pros::E_MOTOR_GEARSET_36, false);
 
 void config() {
 	//configure motors
@@ -43,6 +42,8 @@ void config() {
 	rFDrive.set_current_limit(1500);
 	lRDrive.set_current_limit(1500);
 	rRDrive.set_current_limit(1500);
+
+	claw.set_current_limit(1000);
 }
 
 
@@ -184,20 +185,17 @@ void opcontrol() {
 		}
 
 		if (master.get_digital(DIGITAL_R1)) {
-			rIn.move_velocity(100);
-			lIn.move_velocity(100);
+			claw.move_velocity(100);
 		}
 		else if (master.get_digital(DIGITAL_R2)) {
-			rIn.move_velocity(-50);
-			lIn.move_velocity(-50);
+			claw.move_velocity(-50);
 		}
 		else {
-			rIn.move_velocity(0);
-			lIn.move_velocity(0);
+			claw.move_velocity(0);
 		}
 
 		if (master.get_digital(DIGITAL_L1)) {
-			lift.move_velocity(100);
+			lift.move_velocity(200);
 		}
 		else if (master.get_digital(DIGITAL_L2)) {
 			lift.move_velocity(-50);

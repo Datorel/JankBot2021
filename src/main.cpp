@@ -235,7 +235,7 @@ int changeMode(int mode) {
 		if(mode == 3) {
 			mode = 4;
 		}
-		else if (mode == 4) {
+		else {
 			mode = 3;
 		}
 	}
